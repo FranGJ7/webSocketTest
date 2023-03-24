@@ -12,15 +12,37 @@ const io = new Server(server)
 
 app.use(express.static("public"))
 
-app.get("/message", (req, res) => res.json(messageDatabase))
+app.get("/messages", (req, res) => res.json(messageDatabase))
+
+
+
+
+
 
 io.on("connection", (socket)=>{
     console.log(`Usuário conectado: ${socket.id}`)
+
+
+    socket.on("message_sent", (messageData)=>{
+        console.log(`Nova mensagem ${messageData}`)
+        const newMessage = { username: `Usuário ${socket.id}`, content: messageData}
+        messageDatabase.push(newMessage)
+
+
+        io.emit("message_received", newMessage)
+    })
+
+    socket.on("message_sent", (messageData)=>{
+        console.log(`Nova mensagem ${messageData}`)
+    })
+
 
     socket.on(`disconnect`, () => {
           console.log(`Usuário ${socket.id} foi desconectado`)
     })
 })
+
+
 
 
 server.listen(3000, () => console.log("Servidor iniciado!"))
